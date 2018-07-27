@@ -1,0 +1,52 @@
+---
+# tasks file for ansible-docker-base
+- name: Ensure Software is installed
+  yum:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - docker
+    - python-pip
+
+- name: Installed docker-py
+  pip:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - docker-py
+
+- name: Ensure docker is running and enabled
+  systemd:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Starting Docker container with RSYSLOG as Provider {{ syslog_gen_image }}
+  docker_container:
+    name: '{{ syslog_gen_syslog }}'
+    image: '{{ syslog_gen_image }}'
+    state: started
+    restart_policy: always
+    log_driver: syslog
+    log_options:
+      syslog-address: tcp://{{ item }}:514
+  when: 
+    - syslog_gen_syslog is defined
+    - syslog_gen_image is defined
+  with_items: "{{ groups['splunk'] }}"
+
+- name: Starting Docker container with HEC as Provider {{ syslog_gen_image }}
+  docker_container:
+    name: '{{ syslog_gen_hec }}'
+    image: '{{ syslog_gen_image }}'
+    state: started
+    restart_policy: always
+    log_driver: splunk
+    log_options:
+      splunk-token: '{{ hec_token }}'
+      splunk-url: http://{{ item }}:8088
+  when: 
+    - syslog_gen_hec is defined
+    - syslog_gen_image is defined
+    - hec_token is defined
+  with_items: "{{ groups['splunk'] }}"

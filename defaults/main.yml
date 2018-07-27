@@ -1,0 +1,7 @@
+---
+# defaults file for syslog-gen-docker
+syslog_gen_rsyslog: syslog-gen-rsyslog
+syslog_gen_hec: syslog-gen-hec
+syslog_gen_image: stackware/sysgen:1.6
+syslog_gen_syslog: true
+hec_token: abcd-efgh-123ada-0815
